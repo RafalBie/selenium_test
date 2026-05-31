@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Selenium Demo App</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Courier New', monospace;
+      background: #0d0d0d;
+      color: #e0e0e0;
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      letter-spacing: 0.15em;
+      color: #00ff99;
+      border-bottom: 1px solid #222;
+      padding-bottom: 12px;
+      margin-bottom: 24px;
+      text-transform: uppercase;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 24px;
+    }
+
+    .tab-btn {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      color: #999;
+      padding: 8px 18px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.85rem;
+      letter-spacing: 0.05em;
+      transition: all 0.15s;
+    }
+
+    .tab-btn:hover { border-color: #00ff99; color: #e0e0e0; }
+    .tab-btn.active { background: #00ff99; color: #0d0d0d; border-color: #00ff99; font-weight: bold; }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    /* ── Shared input styles ── */
+    label { display: block; font-size: 0.78rem; color: #777; margin-bottom: 4px; letter-spacing: 0.05em; }
+    input[type="text"], input[type="password"], input[type="number"], input[type="email"], select, textarea {
+      width: 100%;
+      background: #111;
+      border: 1px solid #333;
+      color: #e0e0e0;
+      padding: 9px 12px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      outline: none;
+      margin-bottom: 14px;
+      transition: border-color 0.15s;
+    }
+    input:focus, select:focus, textarea:focus { border-color: #00ff99; }
+
+    button.action {
+      background: #00ff99;
+      color: #0d0d0d;
+      border: none;
+      padding: 9px 20px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: bold;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      transition: opacity 0.15s;
+    }
+    button.action:hover { opacity: 0.85; }
+    button.action:disabled { opacity: 0.35; cursor: not-allowed; }
+    button.danger {
+      background: #ff4444;
+      color: #fff;
+    }
+    button.secondary {
+      background: #222;
+      color: #ccc;
+      border: 1px solid #444;
+    }
+
+    .msg { margin-top: 12px; font-size: 0.85rem; padding: 8px 12px; }
+    .msg.success { background: #003322; color: #00ff99; border-left: 3px solid #00ff99; }
+    .msg.error   { background: #330000; color: #ff6666; border-left: 3px solid #ff4444; }
+    .msg.info    { background: #001133; color: #66aaff; border-left: 3px solid #3366ff; }
+
+    /* ── Login panel ── */
+    #login-box { max-width: 360px; }
+
+    /* ── Todo panel ── */
+    .todo-controls { display: flex; gap: 8px; margin-bottom: 16px; }
+    .todo-controls input { margin-bottom: 0; flex: 1; }
+    #todo-list { list-style: none; }
+    #todo-list li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 10px;
+      border-bottom: 1px solid #1a1a1a;
+      font-size: 0.9rem;
+    }
+    #todo-list li.done span { text-decoration: line-through; color: #555; }
+    #todo-list li input[type="checkbox"] { accent-color: #00ff99; width: 16px; height: 16px; cursor: pointer; margin-bottom: 0; }
+    #todo-list li button { padding: 3px 9px; font-size: 0.75rem; }
+    #todo-count { font-size: 0.78rem; color: #555; margin-top: 10px; }
+
+    /* ── Calc panel ── */
+    #calc-box { max-width: 320px; }
+    .calc-result-box {
+      background: #111;
+      border: 1px solid #333;
+      padding: 12px;
+      margin-bottom: 16px;
+      min-height: 44px;
+      font-size: 1.3rem;
+      text-align: right;
+      color: #00ff99;
+      letter-spacing: 0.05em;
+    }
+    .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    .calc-btn {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      color: #e0e0e0;
+      padding: 12px 0;
+      font-family: inherit;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+    .calc-btn:hover { background: #2a2a2a; }
+    .calc-btn.op { color: #00ff99; }
+    .calc-btn.eq { background: #00ff99; color: #0d0d0d; font-weight: bold; }
+    .calc-btn.eq:hover { opacity: 0.85; }
+    .calc-btn.clr { color: #ff6666; }
+
+    /* ── Form panel ── */
+    #form-box { max-width: 440px; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    /* ── Table panel ── */
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th { background: #1a1a1a; color: #00ff99; text-align: left; padding: 9px 12px; font-weight: normal; letter-spacing: 0.05em; border-bottom: 1px solid #333; }
+    td { padding: 9px 12px; border-bottom: 1px solid #1a1a1a; }
+    tr:hover td { background: #111; }
+    .badge { display: inline-block; padding: 2px 8px; font-size: 0.72rem; border-radius: 2px; }
+    .badge.active  { background: #003322; color: #00ff99; }
+    .badge.inactive{ background: #330000; color: #ff6666; }
+    .badge.pending { background: #221100; color: #ffaa33; }
+    #table-filter { max-width: 240px; }
+
+    /* sortable header */
+    th[data-col] { cursor: pointer; user-select: none; }
+    th[data-col]:hover { color: #fff; }
+  </style>
+</head>
+<body>
+  <h1>// Selenium Demo App</h1>
+
+  <!-- TABS -->
+  <div class="tabs" role="tablist">
+    <button id="tab-login"  class="tab-btn active" onclick="switchTab('login')"  role="tab">Logowanie</button>
+    <button id="tab-todo"   class="tab-btn"         onclick="switchTab('todo')"   role="tab">Lista zadań</button>
+    <button id="tab-calc"   class="tab-btn"         onclick="switchTab('calc')"   role="tab">Kalkulator</button>
+    <button id="tab-form"   class="tab-btn"         onclick="switchTab('form')"   role="tab">Formularz</button>
+    <button id="tab-table"  class="tab-btn"         onclick="switchTab('table')"  role="tab">Tabela</button>
+  </div>
+
+  <!-- ══════════════ LOGIN ══════════════ -->
+  <div id="panel-login" class="panel active">
+    <div id="login-box">
+      <label for="login-username">Nazwa użytkownika</label>
+      <input id="login-username" type="text" placeholder="admin" autocomplete="username" />
+
+      <label for="login-password">Hasło</label>
+      <input id="login-password" type="password" placeholder="••••••" autocomplete="current-password" />
+
+      <div style="display:flex;gap:8px">
+        <button id="login-submit" class="action" onclick="doLogin()">Zaloguj</button>
+        <button id="login-clear"  class="secondary action" onclick="clearLogin()">Wyczyść</button>
+      </div>
+
+      <div id="login-message" class="msg" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════ TODO ══════════════ -->
+  <div id="panel-todo" class="panel">
+    <div class="todo-controls">
+      <input id="todo-input" type="text" placeholder="Nowe zadanie..." onkeydown="if(event.key==='Enter')addTodo()" />
+      <button id="todo-add" class="action" onclick="addTodo()">Dodaj</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <button id="todo-filter-all"    class="action"     onclick="setFilter('all')">Wszystkie</button>
+      <button id="todo-filter-active" class="secondary action" onclick="setFilter('active')">Aktywne</button>
+      <button id="todo-filter-done"   class="secondary action" onclick="setFilter('done')">Ukończone</button>
+      <button id="todo-clear-done"    class="danger action" onclick="clearDone()">Usuń ukończone</button>
+    </div>
+    <ul id="todo-list"></ul>
+    <div id="todo-count"></div>
+    <div id="todo-message" class="msg" style="display:none"></div>
+  </div>
+
+  <!-- ══════════════ CALCULATOR ══════════════ -->
+  <div id="panel-calc" class="panel">
+    <div id="calc-box">
+      <div id="calc-display" class="calc-result-box">0</div>
+      <div class="calc-grid">
+        <button id="calc-clr"  class="calc-btn clr"  onclick="calcOp('C')">C</button>
+        <button id="calc-sign" class="calc-btn op"   onclick="calcOp('+/-')">+/-</button>
+        <button id="calc-mod"  class="calc-btn op"   onclick="calcOp('%')">%</button>
+        <button id="calc-div"  class="calc-btn op"   onclick="calcOp('/')">÷</button>
+
+        <button id="calc-7"    class="calc-btn"      onclick="calcDigit('7')">7</button>
+        <button id="calc-8"    class="calc-btn"      onclick="calcDigit('8')">8</button>
+        <button id="calc-9"    class="calc-btn"      onclick="calcDigit('9')">9</button>
+        <button id="calc-mul"  class="calc-btn op"   onclick="calcOp('*')">×</button>
+
+        <button id="calc-4"    class="calc-btn"      onclick="calcDigit('4')">4</button>
+        <button id="calc-5"    class="calc-btn"      onclick="calcDigit('5')">5</button>
+        <button id="calc-6"    class="calc-btn"      onclick="calcDigit('6')">6</button>
+        <button id="calc-sub"  class="calc-btn op"   onclick="calcOp('-')">−</button>
+
+        <button id="calc-1"    class="calc-btn"      onclick="calcDigit('1')">1</button>
+        <button id="calc-2"    class="calc-btn"      onclick="calcDigit('2')">2</button>
+        <button id="calc-3"    class="calc-btn"      onclick="calcDigit('3')">3</button>
+        <button id="calc-add"  class="calc-btn op"   onclick="calcOp('+')">+</button>
+
+        <button id="calc-0"    class="calc-btn"      onclick="calcDigit('0')" style="grid-column:span 2">0</button>
+        <button id="calc-dot"  class="calc-btn"      onclick="calcDigit('.')">.</button>
+        <button id="calc-eq"   class="calc-btn eq"   onclick="calcOp('=')">=</button>
+      </div>
+      <div id="calc-history" style="margin-top:14px;font-size:0.78rem;color:#555;min-height:20px"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════ FORM ══════════════ -->
+  <div id="panel-form" class="panel">
+    <div id="form-box">
+      <div class="row2">
+        <div>
+          <label for="form-firstname">Imię *</label>
+          <input id="form-firstname" type="text" placeholder="Jan" />
+        </div>
+        <div>
+          <label for="form-lastname">Nazwisko *</label>
+          <input id="form-lastname" type="text" placeholder="Kowalski" />
+        </div>
+      </div>
+
+      <label for="form-email">E-mail *</label>
+      <input id="form-email" type="email" placeholder="jan@example.com" />
+
+      <label for="form-age">Wiek</label>
+      <input id="form-age" type="number" min="1" max="120" placeholder="25" />
+
+      <label for="form-role">Rola</label>
+      <select id="form-role">
+        <option value="">— wybierz —</option>
+        <option value="admin">Administrator</option>
+        <option value="user">Użytkownik</option>
+        <option value="moderator">Moderator</option>
+        <option value="guest">Gość</option>
+      </select>
+
+      <label>Płeć</label>
+      <div style="display:flex;gap:20px;margin-bottom:14px;font-size:0.9rem">
+        <label style="display:flex;align-items:center;gap:6px;color:#e0e0e0">
+          <input id="form-gender-m" type="radio" name="gender" value="m" /> Mężczyzna
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;color:#e0e0e0">
+          <input id="form-gender-f" type="radio" name="gender" value="f" /> Kobieta
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;color:#e0e0e0">
+          <input id="form-gender-o" type="radio" name="gender" value="o" /> Inne
+        </label>
+      </div>
+
+      <label for="form-bio">Bio</label>
+      <textarea id="form-bio" rows="3" placeholder="Kilka słów o sobie..."></textarea>
+
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:#e0e0e0;margin-bottom:14px">
+        <input id="form-terms" type="checkbox" style="width:auto;margin:0;accent-color:#00ff99" />
+        Akceptuję regulamin *
+      </label>
+
+      <div style="display:flex;gap:8px">
+        <button id="form-submit" class="action" onclick="submitForm()">Wyślij</button>
+        <button id="form-reset"  class="secondary action" onclick="resetForm()">Reset</button>
+      </div>
+
+      <div id="form-message" class="msg" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════ TABLE ══════════════ -->
+  <div id="panel-table" class="panel">
+    <label for="table-filter">Szukaj:</label>
+    <input id="table-filter" type="text" placeholder="Filtruj po imieniu lub emailu..." oninput="filterTable()" />
+    <table id="data-table" aria-label="Tabela użytkowników">
+      <thead>
+        <tr>
+          <th data-col="id"     onclick="sortTable('id')"    >#</th>
+          <th data-col="name"   onclick="sortTable('name')"  >Imię i nazwisko</th>
+          <th data-col="email"  onclick="sortTable('email')" >E-mail</th>
+          <th data-col="role"   onclick="sortTable('role')"  >Rola</th>
+          <th data-col="status" onclick="sortTable('status')">Status</th>
+        </tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+    </table>
+    <div id="table-count" style="font-size:0.78rem;color:#555;margin-top:10px"></div>
+  </div>
+
+<script>
+// ══════════════════════════════════════════
+//  TAB SWITCHER
+// ══════════════════════════════════════════
+function switchTab(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+// ══════════════════════════════════════════
+//  LOGIN
+// ══════════════════════════════════════════
+const VALID_USERS = { admin: 'admin123', user: 'pass' };
+
+function doLogin() {
+  const u = document.getElementById('login-username').value.trim();
+  const p = document.getElementById('login-password').value;
+  const msg = document.getElementById('login-message');
+  if (!u || !p) {
+    showMsg(msg, 'error', 'Wypełnij wszystkie pola.');
+    return;
+  }
+  if (VALID_USERS[u] && VALID_USERS[u] === p) {
+    showMsg(msg, 'success', `Zalogowano jako: ${u}`);
+  } else {
+    showMsg(msg, 'error', 'Nieprawidłowy login lub hasło.');
+  }
+}
+
+function clearLogin() {
+  document.getElementById('login-username').value = '';
+  document.getElementById('login-password').value = '';
+  hide(document.getElementById('login-message'));
+}
+
+// ══════════════════════════════════════════
+//  TODO
+// ══════════════════════════════════════════
+let todos = [], todoFilter = 'all', todoId = 0;
+
+function addTodo() {
+  const inp = document.getElementById('todo-input');
+  const text = inp.value.trim();
+  const msg = document.getElementById('todo-message');
+  if (!text) { showMsg(msg, 'error', 'Wpisz treść zadania.'); return; }
+  hide(msg);
+  todos.push({ id: ++todoId, text, done: false });
+  inp.value = '';
+  renderTodos();
+}
+
+function toggleTodo(id) {
+  const t = todos.find(x => x.id === id);
+  if (t) { t.done = !t.done; renderTodos(); }
+}
+
+function deleteTodo(id) {
+  todos = todos.filter(x => x.id !== id);
+  renderTodos();
+}
+
+function clearDone() {
+  todos = todos.filter(x => !x.done);
+  renderTodos();
+}
+
+function setFilter(f) {
+  todoFilter = f;
+  ['all','active','done'].forEach(name => {
+    const btn = document.getElementById('todo-filter-' + name);
+    btn.className = name === f ? 'action' : 'secondary action';
+  });
+  renderTodos();
+}
+
+function renderTodos() {
+  const list = document.getElementById('todo-list');
+  const filtered = todos.filter(t =>
+    todoFilter === 'all' ? true : todoFilter === 'done' ? t.done : !t.done
+  );
+  list.innerHTML = filtered.map(t => `
+    <li id="todo-item-${t.id}" class="${t.done ? 'done' : ''}" data-testid="todo-item">
+      <input type="checkbox" id="todo-check-${t.id}" ${t.done ? 'checked' : ''}
+             onchange="toggleTodo(${t.id})" aria-label="Zaznacz zadanie" />
+      <span id="todo-text-${t.id}" style="flex:1">${escHtml(t.text)}</span>
+      <button id="todo-del-${t.id}" class="danger action" onclick="deleteTodo(${t.id})">✕</button>
+    </li>`).join('');
+  const done = todos.filter(x => x.done).length;
+  document.getElementById('todo-count').textContent =
+    `Zadania: ${todos.length} | Ukończone: ${done} | Pozostałe: ${todos.length - done}`;
+}
+
+renderTodos();
+
+// ══════════════════════════════════════════
+//  CALCULATOR
+// ══════════════════════════════════════════
+let calcCurrent = '0', calcPrev = null, calcOperator = null, calcReset = false;
+
+function calcDigit(d) {
+  if (calcReset) { calcCurrent = ''; calcReset = false; }
+  if (d === '.' && calcCurrent.includes('.')) return;
+  calcCurrent = calcCurrent === '0' && d !== '.' ? d : calcCurrent + d;
+  updateCalcDisplay();
+}
+
+function calcOp(op) {
+  const val = parseFloat(calcCurrent);
+  if (op === 'C') { calcCurrent = '0'; calcPrev = null; calcOperator = null; calcReset = false; updateCalcDisplay(); document.getElementById('calc-history').textContent = ''; return; }
+  if (op === '+/-') { calcCurrent = String(-val); updateCalcDisplay(); return; }
+  if (op === '%')   { calcCurrent = String(val / 100); updateCalcDisplay(); return; }
+  if (op === '=') {
+    if (calcOperator === null || calcPrev === null) return;
+    const result = compute(calcPrev, val, calcOperator);
+    document.getElementById('calc-history').textContent = `${calcPrev} ${calcOperator} ${val} = ${result}`;
+    calcCurrent = String(result);
+    calcPrev = null; calcOperator = null; calcReset = true;
+    updateCalcDisplay(); return;
+  }
+  calcPrev = val; calcOperator = op; calcReset = true;
+}
+
+function compute(a, b, op) {
+  if (op === '+') return +(a + b).toFixed(10);
+  if (op === '-') return +(a - b).toFixed(10);
+  if (op === '*') return +(a * b).toFixed(10);
+  if (op === '/') return b === 0 ? 'Błąd' : +(a / b).toFixed(10);
+}
+
+function updateCalcDisplay() {
+  document.getElementById('calc-display').textContent = calcCurrent;
+}
+
+// ══════════════════════════════════════════
+//  FORM
+// ══════════════════════════════════════════
+function submitForm() {
+  const get = id => document.getElementById(id);
+  const msg = get('form-message');
+  const fn = get('form-firstname').value.trim();
+  const ln = get('form-lastname').value.trim();
+  const em = get('form-email').value.trim();
+  const terms = get('form-terms').checked;
+
+  if (!fn || !ln || !em) { showMsg(msg, 'error', 'Wypełnij wymagane pola (*)'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { showMsg(msg, 'error', 'Nieprawidłowy format e-mail.'); return; }
+  if (!terms) { showMsg(msg, 'error', 'Musisz zaakceptować regulamin.'); return; }
+
+  showMsg(msg, 'success', `Formularz wysłany! Witaj, ${fn} ${ln}.`);
+}
+
+function resetForm() {
+  ['form-firstname','form-lastname','form-email','form-age','form-bio'].forEach(id =>
+    document.getElementById(id).value = ''
+  );
+  document.getElementById('form-role').value = '';
+  document.getElementById('form-terms').checked = false;
+  document.querySelectorAll('input[name="gender"]').forEach(r => r.checked = false);
+  hide(document.getElementById('form-message'));
+}
+
+// ══════════════════════════════════════════
+//  TABLE
+// ══════════════════════════════════════════
+const TABLE_DATA = [
+  { id:1, name:'Anna Nowak',      email:'anna@example.com',    role:'Admin',      status:'active' },
+  { id:2, name:'Piotr Wiśniewski',email:'piotr@example.com',   role:'Użytkownik', status:'active' },
+  { id:3, name:'Katarzyna Maj',   email:'kasia@example.com',   role:'Moderator',  status:'inactive' },
+  { id:4, name:'Tomasz Lewandowski',email:'tomek@example.com', role:'Gość',       status:'pending' },
+  { id:5, name:'Monika Zając',    email:'monika@example.com',  role:'Użytkownik', status:'active' },
+  { id:6, name:'Rafał Kowalczyk', email:'rafal@example.com',   role:'Admin',      status:'inactive' },
+  { id:7, name:'Ewelina Krawczyk',email:'ewelina@example.com', role:'Użytkownik', status:'pending' },
+  { id:8, name:'Marek Szymański', email:'marek@example.com',   role:'Moderator',  status:'active' },
+];
+
+let sortCol = 'id', sortAsc = true;
+
+function sortTable(col) {
+  if (sortCol === col) sortAsc = !sortAsc; else { sortCol = col; sortAsc = true; }
+  renderTable();
+}
+
+function filterTable() { renderTable(); }
+
+function renderTable() {
+  const q = document.getElementById('table-filter').value.toLowerCase();
+  let rows = TABLE_DATA.filter(r =>
+    r.name.toLowerCase().includes(q) || r.email.toLowerCase().includes(q)
+  );
+  rows.sort((a, b) => {
+    const va = String(a[sortCol]), vb = String(b[sortCol]);
+    return sortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
+  });
+  document.getElementById('table-body').innerHTML = rows.map(r => `
+    <tr id="row-${r.id}" data-testid="table-row">
+      <td>${r.id}</td>
+      <td id="cell-name-${r.id}">${escHtml(r.name)}</td>
+      <td id="cell-email-${r.id}">${escHtml(r.email)}</td>
+      <td>${escHtml(r.role)}</td>
+      <td><span class="badge ${r.status}" id="cell-status-${r.id}">${r.status}</span></td>
+    </tr>`).join('');
+  document.getElementById('table-count').textContent = `Wyświetlane wiersze: ${rows.length} / ${TABLE_DATA.length}`;
+}
+
+renderTable();
+
+// ══════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════
+function showMsg(el, type, text) {
+  el.className = `msg ${type}`;
+  el.textContent = text;
+  el.style.display = 'block';
+}
+function hide(el) { el.style.display = 'none'; }
+function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+</body>
+</html>
