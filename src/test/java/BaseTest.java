@@ -10,6 +10,8 @@ import org.openqa.selenium.chrome.ChromeDriver;
 
 import java.io.File;
 
+import static java.awt.SystemColor.text;
+
 public class BaseTest {
     private LoginPage loginPage;
     protected static final String APP_URL;
@@ -42,11 +44,13 @@ public class BaseTest {
     @Test
     void shouldShowErrorMessageforWrongPassword() {
         driver.get(APP_URL);
-        WebElement element = driver.findElement(By.id("login-username"));
-        element.sendKeys("admin");
-        driver.findElement(By.id("login-password")).sendKeys("123");
-        driver.findElement(By.id("login-submit")).click();
-        String text = driver.findElement((By.id("login-message"))).getText();
+        loginPage.login("admin", "admin123");
+        loginPage.messageLocator("Nieprawidłowy login lub hasło.");
+//        WebElement element = driver.findElement(By.id("login-username"));
+//        element.sendKeys("admin");
+//        driver.findElement(By.id("login-password")).sendKeys("123");
+//        driver.findElement(By.id("login-submit")).click();
+//        String text = driver.findElement((By.id("login-message"))).getText();
         Assertions.assertEquals("Nieprawidłowy login lub hasło.", text);
     }
     @Test

@@ -2,6 +2,8 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
+import static java.awt.SystemColor.text;
+
 public class LoginPage {
     private final String loginUserNameLocator = "login-username";
     private final String loginPasswordLocator = "login-password";
@@ -25,11 +27,20 @@ public class LoginPage {
     }
     public WebElement getLoginSubmitButton() {
         return driver.findElement(By.id(loginSubmitLocator));
-}
+    }
+    public WebElement getLoginMessageLocator() {
+        return driver.findElement(By.id(loginMessageLocator));
+    }
+    public WebElement getLoginCorrectMessage() {
+        return driver.findElement(By.id(loginCorrectMessage));
+    }
     public void login(String username, String password) {
         getUserNameField().sendKeys(username);
         getUserPasswordField().sendKeys(password);
         getLoginSubmitButton().click();
+    }
+    public void messageLocator(String s) {
+        getLoginMessageLocator().sendKeys(text);
     }
 }
 
