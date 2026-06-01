@@ -10,8 +10,6 @@ import org.openqa.selenium.chrome.ChromeDriver;
 
 import java.io.File;
 
-import static java.awt.SystemColor.text;
-
 
 public class BaseTest {
     private LoginPage loginPage;
@@ -34,25 +32,27 @@ public class BaseTest {
     void name() {
         driver.get(APP_URL);
         loginPage.login("admin", "admin123");
+        String message = loginPage.getLoginMessageText();
 //        WebElement element = driver.findElement(By.id("login-username"));
 //        element.sendKeys("admin");
 //        driver.findElement(By.id("login-password")).sendKeys("admin123");
 //        driver.findElement(By.id("login-submit")).click();
-        String text = driver.findElement((By.id("login-message"))).getText();
-        Assertions.assertEquals("Zalogowano jako: admin", text);
+//        String text = driver.findElement((By.id("login-message"))).getText();
+        Assertions.assertEquals("Zalogowano jako: admin", message);
 
     }
     @Test
     void shouldShowErrorMessageforWrongPassword() {
         driver.get(APP_URL);
         loginPage.login("admin", "admin1234");
-        loginPage.getMessageLocator("Nieprawidłowy login lub hasło.");
+        String message = loginPage.getLoginMessageText();
+
 //        WebElement element = driver.findElement(By.id("login-username"));
 //        element.sendKeys("admin");
 //        driver.findElement(By.id("login-password")).sendKeys("123");
 //        driver.findElement(By.id("login-submit")).click();
-        String text = driver.findElement((By.id("login-message"))).getText();
-        Assertions.assertEquals("Nieprawidłowy login lub hasło.",text);
+//        String text = driver.findElement((By.id("login-message"))).getText();
+        Assertions.assertEquals("Nieprawidłowy login lub hasło.", message);
     }
     @Test
     void shouldShowErrorMessageforWrongUsername() {

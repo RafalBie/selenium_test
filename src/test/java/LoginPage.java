@@ -1,4 +1,5 @@
 import org.openqa.selenium.By;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
@@ -39,9 +40,8 @@ public class LoginPage {
         getUserPasswordField().sendKeys(password);
         getLoginSubmitButton().click();
     }
-    public void getMessageLocator(String text) {
-
-        getLoginMessageLocator().getText();
+    public String getLoginMessageText() {
+        return getLoginMessageLocator().getText();
     }
 }
 
