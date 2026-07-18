@@ -43,6 +43,12 @@ public class LoginPage {
     public String getLoginMessageText() {
         return getLoginMessageLocator().getText();
     }
+    public String getLoginErrorMessageText() {
+        return loginErrorMessage;
+    }
+    public String getLoginEmptyMessageText() {
+        return loginEmptyMessage;
+    }
 }
 
 // zrefaktorowac  testy  z basetesty tutaj
